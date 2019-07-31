@@ -4,23 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Tabular data with chartjs library</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 </head>
 <body>
+    <canvas id="myChart" width="800" height="400"></canvas>
     <script>
-        async function getData() {
-            const response = await fetch('data.csv');
-            const data = await response.text();
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const xPoints = [];
+        const yPoints = [];
 
-            const rows = data.split("\n").slice(1);
-            rows.forEach(row => {
-                const rowData = row.split(",");
-                const year = rowData[0];
-                const temp = rowData[1];
-                console.log(year, temp);
-            })
+        async function getData() {
+                const response = await fetch('data.csv');
+                const data = await response.text();
+
+                const rows = data.split("\n").slice(1);
+                rows.forEach(row => {
+                    const rowData = row.split(",");
+                    const year = rowData[0];
+                    const temp = parseFloat(rowData[1]) + 14;
+                    xPoints.push(year);
+                    yPoints.push(temp);
+                })
+                return {xPoints, yPoints};
         }
-        getData();
+
+        async function chartData() {
+            const dataObj = await getData();
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataObj.xPoints,
+                    datasets: [{
+                        label: 'Global Average Temparature',
+                        data: dataObj.yPoints,
+                        fill: false,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    // Include a dollar sign in the ticks
+                                    callback: function (value, index, values) {
+                                        return value + " ˚";
+                                    }
+                                }
+                            }]
+                        }
+                    }
+          
+            });
+        }
+
+        chartData();
+        
+        
     </script>
 </body>
 </html>
